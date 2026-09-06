@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from datetime import date
 
 from app.core.database import get_db
 from app.models.asset import Asset
@@ -18,9 +19,9 @@ def create_asset(
     name: str = None,
     location: str = None,
     status: str = "AVAILABLE",
-    commissioned_date: str = None,
-    last_maintenance_date: str = None,
-    next_maintenance_due: str = None,
+    commissioned_date: date = None,
+    last_maintenance_date: date = None,
+    next_maintenance_due: date = None,
     db: Session = Depends(get_db)
 ):
     existing_asset = (
@@ -40,7 +41,10 @@ def create_asset(
         asset_type=asset_type,
         name=name,
         location=location,
-        status=status
+        status=status,
+        commissioned_date=commissioned_date,
+        last_maintenance_date=last_maintenance_date,
+        next_maintenance_due=next_maintenance_due
     )
 
     db.add(asset)
