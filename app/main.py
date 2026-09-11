@@ -13,6 +13,7 @@ from app.api.routes.resources import router as resources_router
 from app.api.routes.resource_assignments import router as resource_assignments_router
 from app.api.routes.blocks import router as blocks_router
 from app.api.routes.blocks import router as conflicts_router
+from app.api.routes.ml_router import router as ml_router
 
 import app.models
 
@@ -36,6 +37,7 @@ app.include_router(resources_router)
 app.include_router(resource_assignments_router)
 app.include_router(blocks_router)
 app.include_router(conflicts_router)
+app.include_router(ml_router)
 
 
 @app.get("/")
