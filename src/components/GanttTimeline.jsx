@@ -10,36 +10,24 @@ export default function GanttTimeline({ selectedBlockId, onSelectBlock, filtered
   );
 
   return (
-    /* 
-       THE FIX: 
-       1. Changed overflowX to overflow: 'auto' (enables BOTH vertical and horizontal scrollbars).
-       2. Added height: '100%' so it takes up the exact box space App.jsx gives it.
-       3. Removed the hardcoded border so it blends perfectly with your new UI.
-    */
-    <div style={{ overflow: 'auto', height: '100%', width: '100%', padding: '16px', background: '#fff', boxSizing: 'border-box' }}>
+    <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '16px', background: '#fff' }}>
+      <h3 style={{ marginTop: 0, color: '#334155' }}>Maintenance Schedule Timeline</h3>
       
-      {/* Header & Legend Area */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', minWidth: '850px' }}>
-        <h3 style={{ margin: 0, color: '#1e293b', fontWeight: 'bold', fontSize: '16px' }}>Maintenance Timeline</h3>
-        
-        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-          {Object.entries(DEPARTMENT_COLORS).map(([dept, color]) => (
-            <div key={dept} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
-              <span style={{ width: '12px', height: '12px', background: color, borderRadius: '2px', display: 'inline-block' }} />
-              {dept}
-            </div>
-          ))}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#dc2626', fontWeight: 'bold' }}>
-            <span style={{ width: '12px', height: '12px', border: '2px solid #dc2626', background: '#fee2e2', borderRadius: '2px', display: 'inline-block' }} />
-            Conflict
+      <div style={{ display: 'flex', gap: '16px', marginBottom: '16px', flexWrap: 'wrap' }}>
+        {Object.entries(DEPARTMENT_COLORS).map(([dept, color]) => (
+          <div key={dept} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
+            <span style={{ width: '12px', height: '12px', background: color, borderRadius: '2px', display: 'inline-block' }} />
+            {dept}
           </div>
+        ))}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', marginLeft: 'auto', color: '#dc2626', fontWeight: 'bold' }}>
+          <span style={{ width: '12px', height: '12px', border: '2px solid #dc2626', background: '#fee2e2', borderRadius: '2px', display: 'inline-block' }} />
+          Schedule Conflict
         </div>
       </div>
 
-      {/* The Scrollable Grid */}
       <div style={{ minWidth: '850px' }}>
-        
-        {/* Time Headers */}
+        {/* Header Row */}
         <div style={{ display: 'grid', gridTemplateColumns: '160px repeat(24, 1fr)', borderBottom: '2px solid #cbd5e0' }}>
           <div style={{ fontWeight: 'bold', padding: '8px', fontSize: '12px', color: '#475569' }}>Section / Time</div>
           {HOURS.map((h) => (
