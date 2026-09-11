@@ -11,6 +11,7 @@ import ProfileModal from './components/ProfileModal';
 import NotificationBell from './components/NotificationBell';
 
 import { getDashboard, getLatestPlan, generatePlan, submitBlockRequest } from './api';
+import { MAINTENANCE_BLOCKS } from './mockData';
 
 export default function App() {
 // --- AUTH STATE ---
@@ -310,7 +311,7 @@ export default function App() {
             {/* ROW 1: THE MACRO VIEW (Fixed Exact Height) */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 h-[450px] shrink-0">
               <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden transition-all duration-300 h-full">
-                <GanttTimeline selectedBlockId={selectedBlockId} onSelectBlock={setSelectedBlockId} filteredBlocks={displayBlocks} conflicts={mockConflicts} />
+                <GanttTimeline selectedBlockId={selectedBlockId} onSelectBlock={setSelectedBlockId} filteredBlocks={displayBlocks} conflicts={conflicts} />
               </div>
               <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-1 transition-all duration-300 h-full">
                 <CorridorMap selectedBlockId={selectedBlockId} onSelectBlock={setSelectedBlockId} filteredBlocks={displayBlocks} />

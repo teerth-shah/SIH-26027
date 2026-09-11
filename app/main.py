@@ -12,8 +12,9 @@ from app.api.routes.maintenance_tasks import router as maintenance_tasks_router
 from app.api.routes.resources import router as resources_router
 from app.api.routes.resource_assignments import router as resource_assignments_router
 from app.api.routes.blocks import router as blocks_router
-from app.api.routes.blocks import router as conflicts_router
-from app.api.routes.ml_router import router as ml_router
+from app.api.routes.conflicts import router as conflicts_router
+from app.api.routes.planner import router as planner_router
+from fastapi.middleware.cors import CORSMiddleware
 
 import app.models
 
@@ -23,6 +24,14 @@ app = FastAPI(
     title="AI-Powered Railway Maintenance Block Planner",
     description="Backend API for railway maintenance block planning and resource management",
     version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # For dev. In prod: ["http://localhost:5173"]
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(stations_router)
@@ -37,7 +46,7 @@ app.include_router(resources_router)
 app.include_router(resource_assignments_router)
 app.include_router(blocks_router)
 app.include_router(conflicts_router)
-app.include_router(ml_router)
+app.include_router(planner_router)
 
 
 @app.get("/")
