@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from sqlalchemy import text
+import os
 from app.core.database import Base, engine
 from app.api.routes.stations import router as stations_router
 from app.api.routes.sections import router as sections_router
@@ -26,9 +27,11 @@ app = FastAPI(
     version="1.0.0"
 )
 
+frontend_origin = os.getenv("FRONTEND_ORIGIN", "*")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # For dev. In prod: ["http://localhost:5173"]
+    allow_origins=[frontend_origin] if frontend_origin != "*" else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

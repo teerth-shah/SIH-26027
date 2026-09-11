@@ -10,7 +10,7 @@ import Login from './components/Login';
 import ProfileModal from './components/ProfileModal';
 import NotificationBell from './components/NotificationBell';
 
-import { getDashboard, getLatestPlan, generatePlan, submitBlockRequest } from './api';
+import { getDashboard, getLatestPlan, generatePlan, submitBlockRequest, getHistory } from './api';
 import { MAINTENANCE_BLOCKS } from './mockData';
 
 export default function App() {
@@ -66,6 +66,7 @@ export default function App() {
   const [conflicts, setConflicts] = useState([]);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [explanationData, setExplanationData] = useState(null);
+  const [historyData, setHistoryData] = useState([]);
 
   // --- HACKATHON DEMO TRICK: Simulate live user fluctuation ---
   useEffect(() => {
@@ -88,6 +89,8 @@ export default function App() {
           if (latest && latest.blocks_generated) {
               setBlocks([]); // Ideally we'd map this, for now keep empty or synthetic
           }
+          const hist = await getHistory();
+          setHistoryData(hist || []);
       } catch (e) {
           console.error("API failed", e);
           setDashboardMetrics(prev => ({...prev, optimizer_status: 'offline/error'}));
@@ -113,7 +116,7 @@ export default function App() {
   const handleOptimize = async () => {
       setIsOptimizing(true);
       try {
-          const result = await generatePlan({ num_tasks: 50 });
+          const result = await generatePlan({ num_tasks: 10 });
           const planBlocks = result.selected_candidates || [];
           
           // Map backend blocks to frontend Gantt structure
@@ -141,6 +144,7 @@ export default function App() {
           fetchData(); // Refresh dashboard
       } catch (e) {
           console.error("Optimization failed", e);
+          addNotification('Optimization failed', 'Failed to generate plan. Ensure backend is running.', 'error');
       } finally {
           setIsOptimizing(false);
       }
@@ -262,10 +266,56 @@ export default function App() {
         </header>
 
         {activeTab === 'history' ? (
-          <div className="flex-1 flex flex-col items-center justify-center animate-in fade-in duration-300">
-            <Calendar size={48} className="text-slate-300 mb-4" />
-            <h2 className="text-xl font-bold text-slate-700">Schedule History</h2>
-            <p className="text-sm text-slate-500 mt-2">Database connection pending backend integration.</p>
+          <div className="flex-1 flex flex-col items-center justify-start p-8 overflow-y-auto animate-in fade-in duration-300">
+            <div className="w-full max-w-4xl flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                <Calendar size={24} className="text-blue-600" />
+                Schedule History
+              </h2>
+              <button
+                onClick={handleOptimize}
+                disabled={isOptimizing}
+                className={`px-4 py-2 rounded-md font-semibold text-sm shadow-sm transition-colors ${
+                  isOptimizing ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                {isOptimizing ? 'Generating...' : 'Generate New Schedule'}
+              </button>
+            </div>
+
+            {historyData.length === 0 ? (
+              <div className="flex flex-col items-center justify-center mt-20 opacity-60">
+                <Calendar size={48} className="text-slate-300 mb-4" />
+                <p className="text-sm text-slate-500 mt-2">No schedules generated yet.</p>
+              </div>
+            ) : (
+              <div className="w-full max-w-4xl space-y-4">
+                {historyData.map((hist, idx) => (
+                  <div key={idx} className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all hover:shadow-md">
+                    <div>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Generated {new Date(hist.timestamp).toLocaleString()}</p>
+                      <h3 className="text-lg font-black text-slate-700">Plan #{historyData.length - idx}</h3>
+                      <div className="flex gap-3 mt-2">
+                        <span className={`text-xs font-bold px-2 py-1 rounded-md ${hist.status === 'FEASIBLE' ? 'bg-teal-100 text-teal-800' : 'bg-blue-100 text-blue-800'}`}>
+                          Status: {hist.status}
+                        </span>
+                        <span className="text-xs font-bold px-2 py-1 rounded-md bg-slate-100 text-slate-700">
+                          {hist.blocks_generated} Blocks
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setActiveTab('dashboard');
+                      }}
+                      className="text-sm font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-md transition-colors"
+                    >
+                      View on Dashboard
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ) : (
           <main className="p-6 flex-1 flex flex-col space-y-5 overflow-y-auto">
