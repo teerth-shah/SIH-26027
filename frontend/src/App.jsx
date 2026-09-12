@@ -1,5 +1,3 @@
-import Login from './components/login';
-import ProfileModal from './components/Profilemodal';
 import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard,
@@ -20,8 +18,8 @@ import ConflictCard from './components/ConflictCard';
 import ExplanationReceipt from './components/ExplanationReceipt';
 import GanttTimeline from './components/GanttTimeline';
 import CorridorMap from './components/CorridorMap';
-import Login from './components/Login';
-import ProfileModal from './components/ProfileModal';
+import Login from './components/login';
+import ProfileModal from './components/Profilemodal';
 import NotificationBell from './components/NotificationBell';
 
 import {
@@ -34,8 +32,9 @@ import {
 import { MAINTENANCE_BLOCKS } from './mockData';
 
 export default function App() {
+
   // =========================================================
-  // AUTH
+  // AUTH STATE
   // =========================================================
 
   const [user, setUser] = useState(null);
@@ -94,11 +93,17 @@ export default function App() {
 
       addNotification(
         'Request processed',
-        res.message || 'Block request submitted successfully.',
+        res.message ||
+          'Block request submitted successfully.',
         'approved'
       );
-    } catch (error) {
-      console.error('Request submission failed:', error);
+
+    } catch (e) {
+
+      console.error(
+        'Request submission failed:',
+        e
+      );
 
       addNotification(
         'Request failed',
@@ -112,48 +117,68 @@ export default function App() {
   // APPLICATION STATE
   // =========================================================
 
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] =
+    useState('dashboard');
 
-  const [selectedBlockId, setSelectedBlockId] = useState(null);
+  const [selectedBlockId, setSelectedBlockId] =
+    useState(null);
 
-  const [isResolved, setIsResolved] = useState(false);
+  const [isResolved, setIsResolved] =
+    useState(false);
 
-  const [filterTask, setFilterTask] = useState('ALL');
+  const [filterTask, setFilterTask] =
+    useState('ALL');
 
-  const [activeUsers, setActiveUsers] = useState(142);
+  const [activeUsers, setActiveUsers] =
+    useState(142);
 
-  const [blocks, setBlocks] = useState([]);
+  const [blocks, setBlocks] =
+    useState([]);
 
-  const [dashboardMetrics, setDashboardMetrics] = useState({
-    active_blocks: 0,
-    conflicts: 0,
-    efficiency: 0,
-    hours_saved: 0,
-    optimizer_status: 'offline'
-  });
+  const [dashboardMetrics, setDashboardMetrics] =
+    useState({
+      active_blocks: 0,
+      conflicts: 0,
+      efficiency: 0,
+      hours_saved: 0,
+      optimizer_status: 'offline'
+    });
 
-  const [conflicts, setConflicts] = useState([]);
+  const [conflicts, setConflicts] =
+    useState([]);
 
-  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [isOptimizing, setIsOptimizing] =
+    useState(false);
 
-  const [explanationData, setExplanationData] = useState(null);
+  const [explanationData, setExplanationData] =
+    useState(null);
 
-  const [historyData, setHistoryData] = useState([]);
+  const [historyData, setHistoryData] =
+    useState([]);
 
   // =========================================================
-  // ACTIVE USER SIMULATION
+  // LIVE USER COUNT
   // =========================================================
 
   useEffect(() => {
+
     const interval = setInterval(() => {
-      setActiveUsers((previous) => {
-        const next = previous + (Math.floor(Math.random() * 5) - 2);
+
+      setActiveUsers((prev) => {
+
+        const next =
+          prev +
+          (Math.floor(Math.random() * 5) - 2);
 
         return Math.max(100, next);
+
       });
+
     }, 5000);
 
-    return () => clearInterval(interval);
+    return () =>
+      clearInterval(interval);
+
   }, []);
 
   // =========================================================
@@ -161,21 +186,35 @@ export default function App() {
   // =========================================================
 
   const fetchData = async () => {
+
     try {
-      const dashboard = await getDashboard();
 
-      setDashboardMetrics(dashboard);
+      const dash =
+        await getDashboard();
 
-      const history = await getHistory();
+      setDashboardMetrics(dash);
 
-      setHistoryData(history || []);
-    } catch (error) {
-      console.error('API failed:', error);
+      const hist =
+        await getHistory();
 
-      setDashboardMetrics((previous) => ({
-        ...previous,
-        optimizer_status: 'offline/error'
-      }));
+      setHistoryData(
+        hist || []
+      );
+
+    } catch (e) {
+
+      console.error(
+        'API failed',
+        e
+      );
+
+      setDashboardMetrics(
+        (prev) => ({
+          ...prev,
+          optimizer_status:
+            'offline/error'
+        })
+      );
     }
   };
 
@@ -184,23 +223,27 @@ export default function App() {
   // =========================================================
 
   useEffect(() => {
+
     if (user) {
       fetchData();
     }
+
   }, [user]);
 
   // =========================================================
-  // LOGIN SCREEN
+  // LOGIN GUARD
   // =========================================================
 
   if (!user) {
+
     return (
       <Login
-        onLoginSuccess={(userData) => {
-          setUser(userData);
-        }}
+        onLoginSuccess={(userData) =>
+          setUser(userData)
+        }
       />
     );
+
   }
 
   // =========================================================
@@ -210,110 +253,159 @@ export default function App() {
   const displayBlocks =
     filterTask === 'ALL'
       ? blocks
-      : blocks.filter((block) => block.id === filterTask);
+      : blocks.filter(
+          (b) => b.id === filterTask
+        );
 
   // =========================================================
-  // CONFLICT DETECTION
+  // CHECK CONFLICT
   // =========================================================
 
-  const isConflict = conflicts.some(
-    (conflict) =>
-      conflict.blockA?.id === selectedBlockId ||
-      conflict.blockB?.id === selectedBlockId
-  );
+  const isConflict =
+    conflicts.some(
+      (c) =>
+        c.blockA?.id ===
+          selectedBlockId ||
+        c.blockB?.id ===
+          selectedBlockId
+    );
 
-  const selectedBlockData = blocks.find(
-    (block) => block.id === selectedBlockId
-  );
+  const selectedBlockData =
+    blocks.find(
+      (b) =>
+        b.id === selectedBlockId
+    );
 
   // =========================================================
   // AI / OR-TOOLS OPTIMIZER
   // =========================================================
 
   const handleOptimize = async () => {
+
     setIsOptimizing(true);
 
     try {
-      console.log('Starting schedule generation...');
 
-      const result = await generatePlan({
-        num_tasks: 10
-      });
+      console.log(
+        'Starting schedule generation...'
+      );
 
-      console.log('Optimizer result:', result);
+      const result =
+        await generatePlan({
+          num_tasks: 10
+        });
 
-      const planBlocks = result.selected_candidates || [];
+      console.log(
+        'Optimizer result:',
+        result
+      );
 
-      // -------------------------------------------------------
-      // MAP BACKEND RESULT TO FRONTEND BLOCK FORMAT
-      // -------------------------------------------------------
-
-      const mappedBlocks = planBlocks.map((candidate, index) => ({
-        id: `B-${String(index + 1).padStart(3, '0')}`,
-
-        title: `Task ${candidate.task_id} Mega-block`,
-
-        department: 'Engineering',
-
-        sectionId: `SEC-${candidate.section}`,
-
-        startHour: Number(candidate.start_hour),
-
-        endHour:
-          Number(candidate.start_hour) +
-          Number(candidate.duration_hrs),
-
-        status: 'Scheduled',
-
-        type: 'Mega-Block',
-
-        description:
-          `Generated by OR-Tools. Risk covered: ${Number(
-            candidate.risk_covered || 0
-          ).toFixed(2)}`,
-
-        urgency: candidate.urgency
-      }));
-
-      console.log('Mapped frontend blocks:', mappedBlocks);
+      const planBlocks =
+        result.selected_candidates ||
+        [];
 
       // -------------------------------------------------------
-      // DISPLAY GENERATED BLOCKS
+      // MAP BACKEND BLOCKS TO FRONTEND FORMAT
       // -------------------------------------------------------
 
-      setBlocks(mappedBlocks);
+      const mappedBlocks =
+        planBlocks.map(
+          (c, i) => ({
+
+            id:
+              `B-${String(i + 1).padStart(3, '0')}`,
+
+            title:
+              `Task ${c.task_id} Mega-block`,
+
+            department:
+              'Engineering',
+
+            sectionId:
+              `SEC-${c.section}`,
+
+            startHour:
+              Number(c.start_hour),
+
+            endHour:
+              Number(c.start_hour) +
+              Number(c.duration_hrs),
+
+            status:
+              'Scheduled',
+
+            type:
+              'Mega-Block',
+
+            description:
+              `Generated by OR-Tools. Risk covered: ${Number(
+                c.risk_covered || 0
+              ).toFixed(2)}`,
+
+            urgency:
+              c.urgency
+
+          })
+        );
+
+      console.log(
+        'Mapped blocks:',
+        mappedBlocks
+      );
+
+      // -------------------------------------------------------
+      // SHOW GENERATED BLOCKS
+      // -------------------------------------------------------
+
+      setBlocks(
+        mappedBlocks
+      );
 
       setConflicts([]);
 
-      setSelectedBlockId(null);
+      setSelectedBlockId(
+        null
+      );
 
-      setIsResolved(false);
+      setIsResolved(
+        false
+      );
 
       // -------------------------------------------------------
-      // EXPLANATION RECEIPT
+      // EXPLANATION
       // -------------------------------------------------------
 
       setExplanationData({
-        combinedTasks: planBlocks
-          .slice(0, 2)
-          .map(
-            (candidate) =>
-              `Task ${candidate.task_id}`
-          ),
+
+        combinedTasks:
+          planBlocks
+            .slice(0, 2)
+            .map(
+              (c) =>
+                'Task ' +
+                c.task_id
+            ),
 
         reasons: [
+
           'Tasks optimized by OR-Tools CP-SAT',
+
           'Low predicted train impact',
+
           'Safe resource allocation'
+
         ],
 
-        hoursSaved: planBlocks.length * 1.5
+        hoursSaved:
+          planBlocks.length * 1.5
+
       });
 
       // -------------------------------------------------------
-      // REFRESH DASHBOARD + HISTORY
+      // REFRESH DASHBOARD
       //
-      // fetchData() DOES NOT clear blocks.
+      // IMPORTANT:
+      // fetchData DOES NOT clear generated blocks.
       // -------------------------------------------------------
 
       await fetchData();
@@ -324,24 +416,34 @@ export default function App() {
         'approved'
       );
 
-    } catch (error) {
-      console.error('Optimization failed:', error);
+    } catch (e) {
+
+      console.error(
+        'Optimization failed',
+        e
+      );
 
       addNotification(
         'Optimization failed',
-        'Failed to generate plan. Check the backend logs.',
+        'Failed to generate plan. Ensure backend is running.',
         'error'
       );
+
     } finally {
-      setIsOptimizing(false);
+
+      setIsOptimizing(
+        false
+      );
+
     }
   };
 
   // =========================================================
-  // MAIN APPLICATION
+  // MAIN UI
   // =========================================================
 
   return (
+
     <div className="flex h-screen bg-slate-50 font-sans overflow-hidden text-slate-800">
 
       {/* =====================================================
@@ -370,32 +472,42 @@ export default function App() {
         <div className="p-6 border-b border-slate-800 bg-slate-900/50 flex items-center justify-between">
 
           {sidebarCollapsed ? (
+
             <Activity
               className="text-blue-500 mx-auto"
               size={24}
             />
+
           ) : (
+
             <div>
+
               <h1 className="text-2xl font-black tracking-wider text-white flex items-center gap-2">
+
                 <Activity
                   className="text-blue-500"
                   size={24}
                 />
+
               </h1>
 
               <p className="text-blue-400/80 text-[15px] font-bold uppercase tracking-widest mt-1.5">
                 AI Block Planning System
               </p>
+
             </div>
+
           )}
 
         </div>
 
-        {/* SIDEBAR COLLAPSE */}
+        {/* COLLAPSE BUTTON */}
 
         <button
           onClick={() =>
-            setSidebarCollapsed((previous) => !previous)
+            setSidebarCollapsed(
+              (v) => !v
+            )
           }
           title={
             sidebarCollapsed
@@ -404,11 +516,17 @@ export default function App() {
           }
           className="mx-4 mt-3 flex items-center justify-center gap-2 text-slate-500 hover:text-white hover:bg-slate-800 rounded-md py-1.5 transition-colors"
         >
+
           {sidebarCollapsed ? (
-            <ChevronsRight size={16} />
+            <ChevronsRight
+              size={16}
+            />
           ) : (
-            <ChevronsLeft size={16} />
+            <ChevronsLeft
+              size={16}
+            />
           )}
+
         </button>
 
         {/* NAVIGATION */}
@@ -418,63 +536,93 @@ export default function App() {
           {/* DASHBOARD */}
 
           <button
-            onClick={() => setActiveTab('dashboard')}
+            onClick={() =>
+              setActiveTab(
+                'dashboard'
+              )
+            }
             title="Live Dashboard"
             className={`
               w-full
               flex
               items-center
-              ${sidebarCollapsed ? 'justify-center' : 'space-x-3'}
+              ${
+                sidebarCollapsed
+                  ? 'justify-center'
+                  : 'space-x-3'
+              }
               px-4
               py-3
               rounded-md
               transition-all
               duration-200
               ${
-                activeTab === 'dashboard'
+                activeTab ===
+                'dashboard'
                   ? 'bg-blue-700 text-white shadow-md'
                   : 'hover:bg-slate-800 hover:text-white'
               }
             `}
           >
-            <LayoutDashboard size={18} />
+
+            <LayoutDashboard
+              size={18}
+            />
 
             {!sidebarCollapsed && (
+
               <span className="font-semibold text-sm">
                 Live Dashboard
               </span>
+
             )}
+
           </button>
 
           {/* HISTORY */}
 
           <button
-            onClick={() => setActiveTab('history')}
+            onClick={() =>
+              setActiveTab(
+                'history'
+              )
+            }
             title="Schedule History"
             className={`
               w-full
               flex
               items-center
-              ${sidebarCollapsed ? 'justify-center' : 'space-x-3'}
+              ${
+                sidebarCollapsed
+                  ? 'justify-center'
+                  : 'space-x-3'
+              }
               px-4
               py-3
               rounded-md
               transition-all
               duration-200
               ${
-                activeTab === 'history'
+                activeTab ===
+                'history'
                   ? 'bg-blue-700 text-white shadow-md'
                   : 'hover:bg-slate-800 hover:text-white'
               }
             `}
           >
-            <Calendar size={18} />
+
+            <Calendar
+              size={18}
+            />
 
             {!sidebarCollapsed && (
+
               <span className="font-semibold text-sm">
                 Schedule History
               </span>
+
             )}
+
           </button>
 
         </nav>
@@ -489,17 +637,29 @@ export default function App() {
             bg-slate-950/30
             flex
             items-center
-            ${sidebarCollapsed ? 'justify-center' : 'justify-between'}
+            ${
+              sidebarCollapsed
+                ? 'justify-center'
+                : 'justify-between'
+            }
           `}
         >
 
           <button
-            onClick={() => setShowProfile(true)}
+            onClick={() =>
+              setShowProfile(
+                true
+              )
+            }
             title={user.username}
             className={`
               flex
               items-center
-              ${sidebarCollapsed ? '' : 'space-x-3'}
+              ${
+                sidebarCollapsed
+                  ? ''
+                  : 'space-x-3'
+              }
               min-w-0
               hover:bg-slate-800/60
               rounded-md
@@ -511,10 +671,15 @@ export default function App() {
           >
 
             <div className="bg-slate-800 p-2 rounded-md text-blue-400 shrink-0">
-              <User size={16} />
+
+              <User
+                size={16}
+              />
+
             </div>
 
             {!sidebarCollapsed && (
+
               <div className="min-w-0">
 
                 <p className="text-slate-500 text-[9px] uppercase font-bold tracking-wider">
@@ -526,18 +691,27 @@ export default function App() {
                 </p>
 
               </div>
+
             )}
 
           </button>
 
           {!sidebarCollapsed && (
+
             <button
-              onClick={() => setUser(null)}
+              onClick={() =>
+                setUser(null)
+              }
               title="Log out"
               className="text-slate-500 hover:text-red-400 transition-colors shrink-0 ml-2"
             >
-              <LogOut size={16} />
+
+              <LogOut
+                size={16}
+              />
+
             </button>
+
           )}
 
         </div>
@@ -549,14 +723,18 @@ export default function App() {
           ===================================================== */}
 
       {showProfile && (
+
         <ProfileModal
           user={user}
-          onClose={() => setShowProfile(false)}
+          onClose={() =>
+            setShowProfile(false)
+          }
           onLogout={() => {
             setShowProfile(false);
             setUser(null);
           }}
         />
+
       )}
 
       {/* =====================================================
@@ -565,13 +743,12 @@ export default function App() {
 
       <div className="flex-1 flex flex-col overflow-auto z-10 relative">
 
-        {/* ===================================================
-            HEADER
-            =================================================== */}
+        {/* HEADER */}
 
         <header className="bg-white shadow-sm px-8 py-4 flex justify-between items-center sticky top-0 z-20 border-b border-slate-200 shrink-0">
 
           <div>
+
             <h2 className="text-lg font-bold text-slate-800">
               Divisional Overview
             </h2>
@@ -579,6 +756,7 @@ export default function App() {
             <p className="text-xs text-slate-500 font-medium">
               Mumbai Railway Network
             </p>
+
           </div>
 
           <div className="flex space-x-5 items-center">
@@ -607,11 +785,15 @@ export default function App() {
             {/* NOTIFICATIONS */}
 
             <NotificationBell
-              notifications={notifications}
-              onOpen={markAllRead}
+              notifications={
+                notifications
+              }
+              onOpen={
+                markAllRead
+              }
             />
 
-            {/* OPTIMIZER STATUS */}
+            {/* OPTIMIZER */}
 
             <div className="flex items-center space-x-2 bg-teal-50 px-3 py-1.5 rounded-md border border-teal-200 shadow-sm">
 
@@ -628,10 +810,11 @@ export default function App() {
         </header>
 
         {/* ===================================================
-            SCHEDULE HISTORY
+            HISTORY TAB
             =================================================== */}
 
-        {activeTab === 'history' ? (
+        {activeTab ===
+        'history' ? (
 
           <div className="flex-1 flex flex-col items-center justify-start p-8 overflow-y-auto animate-in fade-in duration-300">
 
@@ -649,8 +832,12 @@ export default function App() {
               </h2>
 
               <button
-                onClick={handleOptimize}
-                disabled={isOptimizing}
+                onClick={
+                  handleOptimize
+                }
+                disabled={
+                  isOptimizing
+                }
                 className={`
                   px-4
                   py-2
@@ -666,14 +853,17 @@ export default function App() {
                   }
                 `}
               >
+
                 {isOptimizing
                   ? 'Generating...'
                   : 'Generate New Schedule'}
+
               </button>
 
             </div>
 
-            {historyData.length === 0 ? (
+            {historyData.length ===
+            0 ? (
 
               <div className="flex flex-col items-center justify-center mt-20 opacity-60">
 
@@ -692,65 +882,84 @@ export default function App() {
 
               <div className="w-full max-w-4xl space-y-4">
 
-                {historyData.map((history, index) => (
+                {historyData.map(
+                  (hist, idx) => (
 
-                  <div
-                    key={index}
-                    className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all hover:shadow-md"
-                  >
+                    <div
+                      key={idx}
+                      className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all hover:shadow-md"
+                    >
 
-                    <div>
+                      <div>
 
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">
-                        Generated{' '}
-                        {new Date(
-                          history.timestamp
-                        ).toLocaleString()}
-                      </p>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">
 
-                      <h3 className="text-lg font-black text-slate-700">
-                        Plan #{historyData.length - index}
-                      </h3>
+                          Generated{' '}
 
-                      <div className="flex gap-3 mt-2">
+                          {new Date(
+                            hist.timestamp
+                          ).toLocaleString()}
 
-                        <span
-                          className={`
-                            text-xs
-                            font-bold
-                            px-2
-                            py-1
-                            rounded-md
-                            ${
-                              history.status === 'FEASIBLE'
-                                ? 'bg-teal-100 text-teal-800'
-                                : 'bg-blue-100 text-blue-800'
+                        </p>
+
+                        <h3 className="text-lg font-black text-slate-700">
+                          Plan #
+                          {historyData.length -
+                            idx}
+                        </h3>
+
+                        <div className="flex gap-3 mt-2">
+
+                          <span
+                            className={`
+                              text-xs
+                              font-bold
+                              px-2
+                              py-1
+                              rounded-md
+                              ${
+                                hist.status ===
+                                'FEASIBLE'
+                                  ? 'bg-teal-100 text-teal-800'
+                                  : 'bg-blue-100 text-blue-800'
+                              }
+                            `}
+                          >
+
+                            Status:
+                            {' '}
+                            {hist.status}
+
+                          </span>
+
+                          <span className="text-xs font-bold px-2 py-1 rounded-md bg-slate-100 text-slate-700">
+
+                            {
+                              hist.blocks_generated
                             }
-                          `}
-                        >
-                          Status: {history.status}
-                        </span>
+                            {' '}Blocks
 
-                        <span className="text-xs font-bold px-2 py-1 rounded-md bg-slate-100 text-slate-700">
-                          {history.blocks_generated} Blocks
-                        </span>
+                          </span>
+
+                        </div>
 
                       </div>
 
+                      <button
+                        onClick={() =>
+                          setActiveTab(
+                            'dashboard'
+                          )
+                        }
+                        className="text-sm font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-md transition-colors"
+                      >
+                        View on Dashboard
+                      </button>
+
                     </div>
 
-                    <button
-                      onClick={() => {
-                        setActiveTab('dashboard');
-                      }}
-                      className="text-sm font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-md transition-colors"
-                    >
-                      View on Dashboard
-                    </button>
-
-                  </div>
-
-                ))}
+                  )
+                )}
 
               </div>
 
@@ -761,14 +970,12 @@ export default function App() {
         ) : (
 
           /* =================================================
-             LIVE DASHBOARD
+             DASHBOARD
              ================================================= */
 
           <main className="p-6 flex-1 flex flex-col space-y-5 overflow-y-auto">
 
-            {/* =================================================
-                KPI CARDS
-                ================================================= */}
+            {/* KPI CARDS */}
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-1 shrink-0">
 
@@ -777,7 +984,11 @@ export default function App() {
               <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 flex items-center space-x-4 border-l-4 border-l-blue-500">
 
                 <div className="bg-slate-50 p-2.5 rounded text-blue-600">
-                  <LayoutDashboard size={20} />
+
+                  <LayoutDashboard
+                    size={20}
+                  />
+
                 </div>
 
                 <div>
@@ -787,7 +998,9 @@ export default function App() {
                   </p>
 
                   <h4 className="text-lg font-black text-slate-800">
-                    {dashboardMetrics.active_blocks}
+                    {
+                      dashboardMetrics.active_blocks
+                    }
                   </h4>
 
                 </div>
@@ -799,7 +1012,11 @@ export default function App() {
               <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 flex items-center space-x-4 border-l-4 border-l-red-500">
 
                 <div className="bg-slate-50 p-2.5 rounded text-red-600">
-                  <ShieldCheck size={20} />
+
+                  <ShieldCheck
+                    size={20}
+                  />
+
                 </div>
 
                 <div>
@@ -809,7 +1026,9 @@ export default function App() {
                   </p>
 
                   <h4 className="text-lg font-black text-slate-800">
-                    {dashboardMetrics.conflicts}
+                    {
+                      dashboardMetrics.conflicts
+                    }
                   </h4>
 
                 </div>
@@ -821,7 +1040,11 @@ export default function App() {
               <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 flex items-center space-x-4 border-l-4 border-l-teal-500">
 
                 <div className="bg-slate-50 p-2.5 rounded text-teal-600">
-                  <Activity size={20} />
+
+                  <Activity
+                    size={20}
+                  />
+
                 </div>
 
                 <div>
@@ -831,7 +1054,9 @@ export default function App() {
                   </p>
 
                   <h4 className="text-lg font-black text-slate-800">
-                    {dashboardMetrics.efficiency}%
+                    {
+                      dashboardMetrics.efficiency
+                    }%
                   </h4>
 
                 </div>
@@ -843,7 +1068,11 @@ export default function App() {
               <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 flex items-center space-x-4 border-l-4 border-l-slate-700">
 
                 <div className="bg-slate-50 p-2.5 rounded text-slate-700">
-                  <Clock size={20} />
+
+                  <Clock
+                    size={20}
+                  />
+
                 </div>
 
                 <div>
@@ -853,7 +1082,9 @@ export default function App() {
                   </p>
 
                   <h4 className="text-lg font-black text-slate-800">
-                    {dashboardMetrics.hours_saved} hrs
+                    {
+                      dashboardMetrics.hours_saved
+                    } hrs
                   </h4>
 
                 </div>
@@ -862,15 +1093,15 @@ export default function App() {
 
             </div>
 
-            {/* =================================================
-                FILTER
-                ================================================= */}
+            {/* FILTER */}
 
             <div className="bg-white px-5 py-2.5 rounded-lg shadow-sm border border-slate-200 flex justify-between items-center z-10 shrink-0">
 
               <div className="flex items-center space-x-2 text-slate-700">
 
-                <Filter size={16} />
+                <Filter
+                  size={16}
+                />
 
                 <span className="text-xs font-bold uppercase tracking-wide">
                   Data Filter
@@ -879,9 +1110,13 @@ export default function App() {
               </div>
 
               <select
-                value={filterTask}
-                onChange={(event) =>
-                  setFilterTask(event.target.value)
+                value={
+                  filterTask
+                }
+                onChange={(e) =>
+                  setFilterTask(
+                    e.target.value
+                  )
                 }
                 className="bg-slate-50 border border-slate-200 text-slate-700 text-xs font-medium rounded-md focus:ring-blue-600 focus:border-blue-600 block p-2 cursor-pointer outline-none"
               >
@@ -890,24 +1125,30 @@ export default function App() {
                   Show All Scheduled Tasks
                 </option>
 
-                {MAINTENANCE_BLOCKS.map((block) => (
+                {MAINTENANCE_BLOCKS.map(
+                  (block) => (
 
-                  <option
-                    key={block.id}
-                    value={block.id}
-                  >
-                    {block.id}: {block.title} ({block.department})
-                  </option>
+                    <option
+                      key={block.id}
+                      value={block.id}
+                    >
 
-                ))}
+                      {block.id}:
+                      {' '}
+                      {block.title}
+                      {' '}
+                      ({block.department})
+
+                    </option>
+
+                  )
+                )}
 
               </select>
 
             </div>
 
-            {/* =================================================
-                GANTT + MAP
-                ================================================= */}
+            {/* GANTT + MAP */}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 h-[450px] shrink-0">
 
@@ -916,10 +1157,18 @@ export default function App() {
               <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden transition-all duration-300 h-full">
 
                 <GanttTimeline
-                  selectedBlockId={selectedBlockId}
-                  onSelectBlock={setSelectedBlockId}
-                  filteredBlocks={displayBlocks}
-                  conflicts={conflicts}
+                  selectedBlockId={
+                    selectedBlockId
+                  }
+                  onSelectBlock={
+                    setSelectedBlockId
+                  }
+                  filteredBlocks={
+                    displayBlocks
+                  }
+                  conflicts={
+                    conflicts
+                  }
                 />
 
               </div>
@@ -929,18 +1178,22 @@ export default function App() {
               <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-1 transition-all duration-300 h-full">
 
                 <CorridorMap
-                  selectedBlockId={selectedBlockId}
-                  onSelectBlock={setSelectedBlockId}
-                  filteredBlocks={displayBlocks}
+                  selectedBlockId={
+                    selectedBlockId
+                  }
+                  onSelectBlock={
+                    setSelectedBlockId
+                  }
+                  filteredBlocks={
+                    displayBlocks
+                  }
                 />
 
               </div>
 
             </div>
 
-            {/* =================================================
-                REQUEST + DIAGNOSTIC ENGINE
-                ================================================= */}
+            {/* REQUEST + DIAGNOSTIC */}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 pb-8 min-h-[420px] shrink-0 items-stretch">
 
@@ -949,7 +1202,9 @@ export default function App() {
               <div className="lg:col-span-1 h-full">
 
                 <RequestForm
-                  onSubmit={handleRequestSubmit}
+                  onSubmit={
+                    handleRequestSubmit
+                  }
                 />
 
               </div>
@@ -993,26 +1248,27 @@ export default function App() {
 
                         <ConflictCard
                           conflictData={{
-                            severity: 'critical',
+                            severity:
+                              'critical',
 
-                            type: 'Unsafe Track Overlap',
+                            type:
+                              'Unsafe Track Overlap',
 
                             description:
                               `Critical resource and spatial conflict detected at ${selectedBlockData?.sectionId}.`,
 
-                            departments: [
-                              'Track',
-                              'Civil'
-                            ],
+                            departments:
+                              [
+                                'Track',
+                                'Civil'
+                              ],
 
                             overlapTime:
                               `${selectedBlockData?.startHour}:00 - ${selectedBlockData?.endHour}:00`
                           }}
-
                           onRunOptimizer={
                             handleOptimize
                           }
-
                           isOptimizing={
                             isOptimizing
                           }
@@ -1086,5 +1342,6 @@ export default function App() {
       </div>
 
     </div>
+
   );
-}
+}v
