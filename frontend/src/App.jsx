@@ -184,39 +184,23 @@ export default function App() {
   // =========================================================
   // FETCH DASHBOARD DATA
   // =========================================================
+const fetchData = async () => {
+  try {
+    const dash = await getDashboard();
+    setDashboardMetrics(dash);
 
-  const fetchData = async () => {
+    const hist = await getHistory();
+    setHistoryData(hist || []);
 
-    try {
+  } catch (e) {
+    console.error("API failed", e);
 
-      const dash =
-        await getDashboard();
-
-      setDashboardMetrics(dash);
-
-      const hist =
-        await getHistory();
-
-      setHistoryData(
-        hist || []
-      );
-
-    } catch (e) {
-
-      console.error(
-        'API failed',
-        e
-      );
-
-      setDashboardMetrics(
-        (prev) => ({
-          ...prev,
-          optimizer_status:
-            'offline/error'
-        })
-      );
-    }
-  };
+    setDashboardMetrics(prev => ({
+      ...prev,
+      optimizer_status: 'offline/error'
+    }));
+  }
+};
 
   // =========================================================
   // LOAD DATA AFTER LOGIN
