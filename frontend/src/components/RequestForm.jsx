@@ -15,11 +15,21 @@ export default function RequestForm({ onSubmit }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSubmit(formData);
-    alert(`Request Sent!\nDept: ${formData.department}\nTask: ${formData.taskType}`);
+ const handleSubmit = (e) => {
+  e.preventDefault();
+
+  const payload = {
+    title: `${formData.taskType} - ${formData.department}`,
+    section_id: formData.section.startsWith('Track 2') ? 2 : 1,
+    duration_mins: 60
   };
+
+  onSubmit(payload);
+
+  alert(
+    `Request Sent!\nDept: ${formData.department}\nTask: ${formData.taskType}`
+  );
+};
 
   return (
     <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 h-full flex flex-col">
