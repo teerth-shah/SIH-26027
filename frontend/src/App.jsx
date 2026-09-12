@@ -138,12 +138,20 @@ const fetchData = async () => {
 setConflicts([]);
 setSelectedBlockId(null);
 setIsResolved(false);
-          setExplanationData({
-              combinedTasks: ['Task ' + planBlocks[0]?.task_id, 'Task ' + planBlocks[1]?.task_id],
-              reasons: ['Tasks optimized by OR-Tools CP-SAT', 'Low predicted train impact', 'Safe resource allocation'],
-              hoursSaved: result.selected_candidates.length * 1.5
-          });
-          fetchData(); // Refresh dashboard
+         setExplanationData({
+    combinedTasks: [
+        'Task ' + planBlocks[0]?.task_id,
+        'Task ' + planBlocks[1]?.task_id
+    ],
+    reasons: [
+        'Tasks optimized by OR-Tools CP-SAT',
+        'Low predicted train impact',
+        'Safe resource allocation'
+    ],
+    hoursSaved: result.selected_candidates.length * 1.5
+});
+
+fetchData();
       } catch (e) {
           console.error("Optimization failed", e);
           addNotification('Optimization failed', 'Failed to generate plan. Ensure backend is running.', 'error');
