@@ -6,7 +6,7 @@ import ConflictCard from './components/ConflictCard';
 import ExplanationReceipt from './components/ExplanationReceipt';
 import GanttTimeline from './components/GanttTimeline';
 import CorridorMap from './components/CorridorMap';
-import Login from './components/Login';
+import Login from './components/login';
 import ProfileModal from './components/ProfileModal';
 import NotificationBell from './components/NotificationBell';
 
