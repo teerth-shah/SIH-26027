@@ -15,7 +15,7 @@ export default function RequestForm({ onSubmit }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
- const handleSubmit = (e) => {
+const handleSubmit = (e) => {
   e.preventDefault();
 
   const payload = {
@@ -23,6 +23,13 @@ export default function RequestForm({ onSubmit }) {
     section_id: formData.section.startsWith('Track 2') ? 2 : 1,
     duration_mins: 60
   };
+
+  onSubmit(payload);
+
+  alert(
+    `Request Sent!\nDept: ${formData.department}\nTask: ${formData.taskType}`
+  );
+};
 
   onSubmit(payload);
 
