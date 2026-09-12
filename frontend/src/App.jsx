@@ -78,20 +78,21 @@ export default function App() {
   }, []);
 
   // Fetch initial data
-  const fetchData = async () => {
-      try {
-          const dash = await getDashboard();
-          setDashboardMetrics(dash);
-          
-          // Normally we'd fetch blocks and conflicts. Since we have the ML generator,
-          // we'll load the latest plan.
-          const latest = await getLatestPlan();
-          if (latest && latest.blocks_generated) {
-              setBlocks([]); // Ideally we'd map this, for now keep empty or synthetic
-          }
-          const hist = await getHistory();
-          setHistoryData(hist || []);
-      } catch (e) {
+const fetchData = async () => {
+  try {
+    const dash = await getDashboard();
+    setDashboardMetrics(dash);
+
+    const hist = await getHistory();
+    setHistoryData(hist || []);
+  } catch (e) {
+    console.error("API failed", e);
+    setDashboardMetrics(prev => ({
+      ...prev,
+      optimizer_status: 'offline/error'
+    }));
+  }
+}; {
           console.error("API failed", e);
           setDashboardMetrics(prev => ({...prev, optimizer_status: 'offline/error'}));
       }
@@ -133,9 +134,10 @@ export default function App() {
               urgency: c.urgency,
           }));
           
-          setBlocks(mappedBlocks);
-          setConflicts([]);
-          setIsResolved(true);
+         setBlocks(mappedBlocks);
+setConflicts([]);
+setSelectedBlockId(null);
+setIsResolved(false);
           setExplanationData({
               combinedTasks: ['Task ' + planBlocks[0]?.task_id, 'Task ' + planBlocks[1]?.task_id],
               reasons: ['Tasks optimized by OR-Tools CP-SAT', 'Low predicted train impact', 'Safe resource allocation'],
