@@ -7,7 +7,7 @@ import ExplanationReceipt from './components/ExplanationReceipt';
 import GanttTimeline from './components/GanttTimeline';
 import CorridorMap from './components/CorridorMap';
 import Login from './components/login';
-import ProfileModal from './components/ProfileModal';
+import ProfileModal from './components/Profilemodal';
 import NotificationBell from './components/NotificationBell';
 
 import { getDashboard, getLatestPlan, generatePlan, submitBlockRequest, getHistory } from './api';
